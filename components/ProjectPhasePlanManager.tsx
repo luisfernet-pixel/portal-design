@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export type PhaseItem = {
@@ -89,7 +89,12 @@ export function ProjectPhasePlanManager({ projectId, initialItems }: { projectId
   const [savingId, setSavingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    const groups = groupByPhase(initialItems).map(([name]) => name);
+    const initial: Record<string, boolean> = {};
+    for (const name of groups) initial[name] = true;
+    return initial;
+  });
 
   const completion = useMemo(() => {
     if (!items.length) return 0;
@@ -98,6 +103,16 @@ export function ProjectPhasePlanManager({ projectId, initialItems }: { projectId
   }, [items]);
 
   const groupedItems = useMemo(() => groupByPhase(items), [items]);
+
+  useEffect(() => {
+    setCollapsedGroups((prev) => {
+      const next = { ...prev };
+      for (const [groupName] of groupedItems) {
+        if (next[groupName] === undefined) next[groupName] = true;
+      }
+      return next;
+    });
+  }, [groupedItems]);
 
   async function load() {
     const res = await fetch(`/api/admin/projects/${projectId}/phase-items`, { cache: "no-store" });

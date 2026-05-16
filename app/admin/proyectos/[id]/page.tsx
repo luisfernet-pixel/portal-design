@@ -25,6 +25,7 @@ const labelStyle: React.CSSProperties = {
 
 type Client = { id: string; label: string };
 type SectionKey = "gallery" | "decisions" | "documents" | "updates";
+type PhaseOption = { id: string; name: string; sort_order: number; active: boolean };
 
 type UploadResult = { publicUrl: string; path: string };
 
@@ -46,6 +47,7 @@ export default function AdminProjectDetail() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [updates, setUpdates] = useState<any[]>([]);
   const [phaseItems, setPhaseItems] = useState<PhaseItem[]>([]);
+  const [phases, setPhases] = useState<PhaseOption[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [sectionErrors, setSectionErrors] = useState<Record<SectionKey, string>>(emptySectionMap);
@@ -112,13 +114,15 @@ export default function AdminProjectDetail() {
     setError("");
 
     try {
-      const [clientRes, detailRes] = await Promise.all([
+      const [clientRes, detailRes, phasesRes] = await Promise.all([
         fetch("/api/admin/list-clients", { cache: "no-store" }),
         fetch(`/api/admin/projects/${projectId}`, { cache: "no-store" }),
+        fetch("/api/admin/phases", { cache: "no-store" }),
       ]);
 
       const clientPayload = await clientRes.json();
       const detailPayload = await detailRes.json();
+      const phasesPayload = await phasesRes.json();
 
       if (!clientRes.ok) {
         throw new Error(clientPayload.error ?? "No se pudieron cargar los clientes");
@@ -126,6 +130,10 @@ export default function AdminProjectDetail() {
 
       if (!detailRes.ok) {
         throw new Error(detailPayload.error ?? "No se pudo cargar el proyecto");
+      }
+
+      if (!phasesRes.ok) {
+        throw new Error(phasesPayload.error ?? "No se pudieron cargar las fases");
       }
 
       const mapped = (clientPayload.clients ?? []).map((c: any) => ({
@@ -140,6 +148,7 @@ export default function AdminProjectDetail() {
       setDocuments(detailPayload.documents ?? []);
       setUpdates(detailPayload.updates ?? []);
       setPhaseItems(detailPayload.phaseItems ?? []);
+      setPhases((phasesPayload.phases ?? []) as PhaseOption[]);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "No se pudo cargar el proyecto");
       setProject(null);
@@ -376,7 +385,15 @@ export default function AdminProjectDetail() {
             <label style={labelStyle}>Nombre<input className="input" value={project.name ?? ""} onChange={(e) => setProject({ ...project, name: e.target.value })} /></label>
             <label style={labelStyle}>Cliente<select className="select" value={project.client_id ?? ""} onChange={(e) => setProject({ ...project, client_id: e.target.value })}><option value="">Seleccionar</option>{clients.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
             <label style={labelStyle}>Estado<select className="select" value={project.status ?? "activo"} onChange={(e) => setProject({ ...project, status: e.target.value })}>{PROJECT_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
-            <label style={labelStyle}>Fase<input className="input" value={project.phase ?? ""} onChange={(e) => setProject({ ...project, phase: e.target.value })} /></label>
+            <label style={labelStyle}>Fase<select className="select" value={project.phase ?? ""} onChange={(e) => setProject({ ...project, phase: e.target.value })}>
+              {project.phase && !phases.some((p) => p.active !== false && p.name === project.phase) ? (
+                <option value={project.phase}>{project.phase} (actual)</option>
+              ) : null}
+              <option value="">Seleccionar</option>
+              {phases.filter((p) => p.active !== false).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((phase) => (
+                <option key={phase.id} value={phase.name}>{phase.name}</option>
+              ))}
+            </select></label>
             <label style={labelStyle}>Progreso %<input className="input" type="number" min={0} max={100} value={project.progress ?? 0} onChange={(e) => setProject({ ...project, progress: Number(e.target.value) })} /></label>
             <label style={labelStyle}>Proximo paso<input className="input" value={project.next_step ?? ""} onChange={(e) => setProject({ ...project, next_step: e.target.value })} /></label>
             <label style={labelStyle}>Resumen<textarea className="textarea" value={project.summary ?? ""} onChange={(e) => setProject({ ...project, summary: e.target.value })} /></label>
