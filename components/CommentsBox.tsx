@@ -28,6 +28,12 @@ export function CommentsBox({
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<"admin" | "cliente" | null>(null);
+  const [rolesByUserId, setRolesByUserId] = useState<Record<string, "admin" | "cliente">>({});
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function loadComments() {
@@ -47,15 +53,42 @@ export function CommentsBox({
     ]);
 
     setCurrentUserId(authData.user?.id ?? null);
+    if (authData.user?.id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+      setCurrentUserRole((profile?.role as "admin" | "cliente" | null) ?? null);
+    } else {
+      setCurrentUserRole(null);
+    }
 
     if (commentsRes.error) {
       setError(commentsRes.error.message);
       setComments([]);
+      setRolesByUserId({});
       setLoading(false);
       return;
     }
 
-    setComments((commentsRes.data ?? []) as CommentRow[]);
+    const nextComments = (commentsRes.data ?? []) as CommentRow[];
+    setComments(nextComments);
+
+    const uniqueUserIds = Array.from(new Set(nextComments.map((comment) => comment.user_id).filter(Boolean)));
+    if (uniqueUserIds.length > 0) {
+      const { data: profiles } = await supabase.from("profiles").select("id,role").in("id", uniqueUserIds);
+      const nextRoles: Record<string, "admin" | "cliente"> = {};
+      for (const profile of profiles ?? []) {
+        if (profile.id && (profile.role === "admin" || profile.role === "cliente")) {
+          nextRoles[profile.id] = profile.role;
+        }
+      }
+      setRolesByUserId(nextRoles);
+    } else {
+      setRolesByUserId({});
+    }
+
     setLoading(false);
   }
 
@@ -103,12 +136,113 @@ export function CommentsBox({
     await loadComments();
   }
 
+  function resolveRole(comment: CommentRow): "admin" | "cliente" | null {
+    return (
+      comment.author_role ??
+      rolesByUserId[comment.user_id] ??
+      (comment.user_id === currentUserId ? currentUserRole : null)
+    );
+  }
+
   function authorLabel(comment: CommentRow) {
-    const role = comment.author_role;
+    const role = resolveRole(comment);
     const customerName = comment.author_name?.trim() || "Cliente";
     const who = role === "admin" ? "Decorazon" : role === "cliente" ? customerName : "Decorazon";
     if (comment.user_id === currentUserId) return `Tu comentario (${who})`;
     return who;
+  }
+
+  function canManageComment(comment: CommentRow) {
+    void comment;
+    return currentUserRole === "admin";
+  }
+
+  function startEdit(comment: CommentRow) {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.text);
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditingCommentId(null);
+    setEditingText("");
+  }
+
+  async function saveEditedComment(comment: CommentRow) {
+    const nextText = editingText.trim();
+    if (!nextText) {
+      setError("El comentario no puede estar vacio.");
+      return;
+    }
+
+    const supabase = createClient();
+    setUpdatingCommentId(comment.id);
+    setError("");
+
+    const { error: updateError } = await supabase
+      .from("comments")
+      .update({ text: nextText })
+      .eq("id", comment.id)
+      .eq("project_id", projectId)
+      .eq("target_type", targetType)
+      .eq("target_id", targetId);
+
+    if (updateError) {
+      setUpdatingCommentId(null);
+      setError(updateError.message);
+      return;
+    }
+
+    setUpdatingCommentId(null);
+    cancelEdit();
+    await loadComments();
+  }
+
+  async function deleteComment(comment: CommentRow) {
+    const confirmed = window.confirm("Vas a borrar este comentario. Esta accion no se puede deshacer.");
+    if (!confirmed) return;
+
+    const supabase = createClient();
+    setDeletingCommentId(comment.id);
+    setError("");
+
+    const { error: deleteError } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", comment.id)
+      .eq("project_id", projectId)
+      .eq("target_type", targetType)
+      .eq("target_id", targetId);
+
+    if (deleteError) {
+      setDeletingCommentId(null);
+      setError(deleteError.message);
+      return;
+    }
+
+    setDeletingCommentId(null);
+    if (editingCommentId === comment.id) cancelEdit();
+    await loadComments();
+  }
+
+  function commentTone(comment: CommentRow) {
+    const resolvedRole = resolveRole(comment);
+
+    if (resolvedRole === "admin") {
+      return {
+        background: "rgba(83, 153, 255, .14)",
+        border: "1px solid rgba(83, 153, 255, .45)",
+        text: "#e8f1ff",
+        meta: "#a8c8ff",
+      };
+    }
+
+    return {
+      background: "rgba(255, 160, 92, .12)",
+      border: "1px solid rgba(255, 160, 92, .45)",
+      text: "#fff2e8",
+      meta: "#ffcaa7",
+    };
   }
 
   return (
@@ -117,21 +251,65 @@ export function CommentsBox({
       {!loading && comments.length > 0 ? (
         <div style={{ display: "grid", gap: 8 }}>
           {comments.map((comment) => (
+            (() => {
+              const tone = commentTone(comment);
+              return (
             <article
               key={comment.id}
               style={{
                 padding: "8px 10px",
                 borderRadius: 10,
-                background: "rgba(255,255,255,.04)",
-                border: "1px solid rgba(255,255,255,.08)",
+                background: tone.background,
+                border: tone.border,
               }}
             >
-              <p style={{ margin: 0, fontSize: 13, color: "#edf2fa" }}>{comment.text}</p>
-              <p style={{ margin: "6px 0 0", fontSize: 11, color: "#8f9caf" }}>
+              {editingCommentId === comment.id ? (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <textarea
+                    className="textarea"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    disabled={updatingCommentId === comment.id}
+                  />
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => saveEditedComment(comment)}
+                      disabled={updatingCommentId === comment.id}
+                    >
+                      {updatingCommentId === comment.id ? "Guardando..." : "Guardar"}
+                    </button>
+                    <button type="button" className="btn-secondary" onClick={cancelEdit} disabled={updatingCommentId === comment.id}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: 13, color: tone.text }}>{comment.text}</p>
+              )}
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: tone.meta }}>
                 {authorLabel(comment)} -{" "}
                 {new Date(comment.created_at).toLocaleString("es-BO")}
               </p>
+              {canManageComment(comment) && editingCommentId !== comment.id ? (
+                <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button type="button" className="btn-soft" onClick={() => startEdit(comment)}>
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => deleteComment(comment)}
+                    disabled={deletingCommentId === comment.id}
+                  >
+                    {deletingCommentId === comment.id ? "Borrando..." : "Borrar"}
+                  </button>
+                </div>
+              ) : null}
             </article>
+              );
+            })()
           ))}
         </div>
       ) : null}

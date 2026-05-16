@@ -50,11 +50,15 @@ export function DocumentsSection({
             {role === "admin" ? <button type="button" className="btn-secondary" onClick={() => remove(doc)}>Eliminar</button> : null}
           </div>
         </div>
-        {isPdf ? <iframe src={doc.file_url} title={doc.title} style={{ width: "100%", height: 360, border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, background: "#0f131b" }} /> : null}
+        {isPdf && role === "admin" ? <iframe src={doc.file_url} title={doc.title} style={{ width: "100%", height: 360, border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, background: "#0f131b" }} /> : null}
         {isImage ? <img src={doc.file_url} alt={doc.title} style={{ width: "100%", maxHeight: 240, objectFit: "contain", borderRadius: 10, border: "1px solid rgba(255,255,255,.08)" }} /> : null}
         {!isPdf && !isImage ? <p style={{ margin: 0, fontSize: 13, color: "#aeb7c6" }}>Vista previa no disponible para este tipo de archivo.</p> : null}
         <p style={{ margin: 0, fontSize: 12, color: "#8f9caf" }}>
-          {isPdf ? "Puedes abrir el PDF en una pestaña nueva para hacer zoom y navegar mejor." : "Abre el archivo para revisarlo y usa los comentarios debajo para dejar observaciones."}
+          {isPdf && role === "cliente"
+            ? "Documento PDF disponible. Pulsa 'Abrir' para verlo manualmente."
+            : isPdf
+              ? "Puedes abrir el PDF en una pestaña nueva para hacer zoom y navegar mejor."
+              : "Abre el archivo para revisarlo y usa los comentarios debajo para dejar observaciones."}
         </p>
         <CommentsBox projectId={projectId} targetType="document" targetId={doc.id} />
       </article>

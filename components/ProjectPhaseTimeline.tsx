@@ -1,4 +1,4 @@
-import { StatusBadge } from "@/components/StatusBadge";
+﻿import { StatusBadge } from "@/components/StatusBadge";
 import type { PhaseItem } from "@/components/ProjectPhasePlanManager";
 
 function groupByPhase(items: PhaseItem[]) {
@@ -12,6 +12,18 @@ function groupByPhase(items: PhaseItem[]) {
   return Array.from(map.entries());
 }
 
+function phaseToneByIndex(index: number) {
+  const palette = [
+    { bg: "rgba(37,99,235,.14)", border: "rgba(37,99,235,.55)", title: "#dbeafe" },
+    { bg: "rgba(5,150,105,.14)", border: "rgba(5,150,105,.55)", title: "#d1fae5" },
+    { bg: "rgba(217,119,6,.14)", border: "rgba(217,119,6,.55)", title: "#fef3c7" },
+    { bg: "rgba(220,38,38,.14)", border: "rgba(220,38,38,.55)", title: "#fee2e2" },
+    { bg: "rgba(124,58,237,.14)", border: "rgba(124,58,237,.55)", title: "#ede9fe" },
+    { bg: "rgba(8,145,178,.14)", border: "rgba(8,145,178,.55)", title: "#cffafe" },
+  ];
+  return palette[index % palette.length];
+}
+
 export function ProjectPhaseTimeline({ items }: { items: PhaseItem[] }) {
   if (!items.length) {
     return <p style={{ margin: 0, color: "#b8c3d6" }}>Aun no hay subfases definidas para este proyecto.</p>;
@@ -21,10 +33,25 @@ export function ProjectPhaseTimeline({ items }: { items: PhaseItem[] }) {
 
   return (
     <section style={{ display: "grid", gap: 12 }}>
-      {grouped.map(([groupName, groupItems]) => (
-        <article key={groupName} className="card" style={{ padding: 12 }}>
-          <h3 style={{ margin: 0, color: "#f3f6fb" }}>{groupName}</h3>
-          <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
+      {grouped.map(([groupName, groupItems], groupIndex) => {
+        const tone = phaseToneByIndex(groupIndex);
+        return (
+        <details key={groupName} className="card" style={{ padding: 12, background: tone.bg, border: `1px solid ${tone.border}` }} open>
+          <summary
+            style={{
+              cursor: "pointer",
+              listStyle: "none",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 8,
+              alignItems: "center",
+            }}
+          >
+            <h3 style={{ margin: 0, color: tone.title }}>{groupName}</h3>
+            <span style={{ fontSize: 12, color: "#b8c3d6" }}>{groupItems.length} subfases</span>
+          </summary>
+
+          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
             {groupItems.map((item) => (
               <div
                 key={item.id}
@@ -50,9 +77,10 @@ export function ProjectPhaseTimeline({ items }: { items: PhaseItem[] }) {
               </div>
             ))}
           </div>
-        </article>
-      ))}
+        </details>
+      );})}
     </section>
   );
 }
+
 
