@@ -1,0 +1,302 @@
+{
+  "exported_at": "2026-05-06T06:02:29.057Z",
+  "source_project_url": "https://cqrnxrfetezehimyqgam.supabase.co",
+  "scope_rule": "portal-design",
+  "data": {
+    "profiles": [
+      {
+        "id": "b84c5cf6-eb56-4bcd-b82d-9cd74842be02",
+        "user_id": "b84c5cf6-eb56-4bcd-b82d-9cd74842be02",
+        "email": "delapaz@portal.app",
+        "full_name": "DELAPAZ",
+        "nombre": "DELAPAZ",
+        "role": "cliente",
+        "created_at": "2026-05-06T03:30:01.675871+00:00"
+      },
+      {
+        "id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "user_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "email": "cliente@portal.app",
+        "full_name": "Cliente Demo",
+        "nombre": "Cliente Demo",
+        "role": "cliente",
+        "created_at": "2026-05-06T02:49:46.848442+00:00"
+      }
+    ],
+    "project_phases": [
+      {
+        "id": "ded203ac-10f8-458d-9559-90014ed30625",
+        "name": "Diagnostico",
+        "sort_order": 1,
+        "active": true
+      },
+      {
+        "id": "c7580cb6-abfb-4fd2-b103-8aae44dca194",
+        "name": "Diseno conceptual",
+        "sort_order": 2,
+        "active": true
+      },
+      {
+        "id": "490f4f07-26c1-4094-96f0-6f36b34c63bf",
+        "name": "Anteproyecto",
+        "sort_order": 3,
+        "active": true
+      },
+      {
+        "id": "1674a3b5-a7a6-43d2-a0f6-0238fb0f97bc",
+        "name": "Revision del cliente",
+        "sort_order": 4,
+        "active": true
+      },
+      {
+        "id": "dab147e9-90e0-41c5-a6d9-504ad337866a",
+        "name": "Diseno final",
+        "sort_order": 5,
+        "active": true
+      },
+      {
+        "id": "73c8f149-0725-47ed-b55c-98c0771c7072",
+        "name": "Documentacion",
+        "sort_order": 6,
+        "active": true
+      },
+      {
+        "id": "ee31e9cc-2e0a-47e0-922b-eea7f98662f2",
+        "name": "Aprobado",
+        "sort_order": 7,
+        "active": true
+      }
+    ],
+    "projects": [
+      {
+        "id": "6b9df67c-2462-4644-bc83-c282495235b1",
+        "name": "swert",
+        "client_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "status": "activo",
+        "phase": "Diagnostico",
+        "progress": 78,
+        "next_step": "",
+        "summary": "",
+        "start_date": null,
+        "estimated_delivery": null,
+        "created_at": "2026-05-06T05:27:16.78515+00:00",
+        "updated_at": "2026-05-06T05:27:16.78515+00:00"
+      },
+      {
+        "id": "ca38b6b2-1db7-4189-af5c-136931079876",
+        "name": "tumi",
+        "client_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "status": "en pause",
+        "phase": "Diagnostico",
+        "progress": 50,
+        "next_step": "",
+        "summary": "",
+        "start_date": "2026-05-14",
+        "estimated_delivery": "2026-05-20",
+        "created_at": "2026-05-06T05:11:15.392742+00:00",
+        "updated_at": "2026-05-06T05:11:15.392742+00:00"
+      },
+      {
+        "id": "83570f01-a431-4f47-8a8b-cf4521852289",
+        "name": "sasa",
+        "client_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "status": "activo",
+        "phase": "Diagnostico",
+        "progress": 12,
+        "next_step": "",
+        "summary": "",
+        "start_date": "2026-05-06",
+        "estimated_delivery": "2026-05-12",
+        "created_at": "2026-05-06T03:55:05.195505+00:00",
+        "updated_at": "2026-05-06T03:55:05.195505+00:00"
+      },
+      {
+        "id": "7b4a9c2c-ef0a-48bf-99f9-117ae5b3232b",
+        "name": "oficinas",
+        "client_id": "b84c5cf6-eb56-4bcd-b82d-9cd74842be02",
+        "status": "activo",
+        "phase": "Diagnostico",
+        "progress": 10,
+        "next_step": "paso siguiente",
+        "summary": "",
+        "start_date": "2026-05-06",
+        "estimated_delivery": "2026-05-13",
+        "created_at": "2026-05-06T03:53:31.050154+00:00",
+        "updated_at": "2026-05-06T03:53:31.050154+00:00"
+      },
+      {
+        "id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "name": "Oficina Central - Proyecto Demo",
+        "client_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "status": "activo",
+        "phase": "Diseno conceptual",
+        "progress": 35,
+        "next_step": "Validar propuesta de recepcion",
+        "summary": "Proyecto demo para validar flujo cliente/admin",
+        "start_date": "2026-05-06",
+        "estimated_delivery": "2026-06-20",
+        "created_at": "2026-05-06T02:49:46.848442+00:00",
+        "updated_at": "2026-05-06T02:49:46.848442+00:00"
+      }
+    ],
+    "gallery_items": [
+      {
+        "id": "7bfd0dfc-e6df-47c9-b2c1-3d7ee7d39751",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Render recepcion A",
+        "description": "Version A de recepcion principal",
+        "image_url": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200",
+        "image_path": "demo/render-a.jpg",
+        "type": "render",
+        "status": "pendiente",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "3d34c0ca-5c49-43b5-8685-b0c3a341e44f",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Render recepcion B",
+        "description": "Version B de recepcion principal",
+        "image_url": "https://images.unsplash.com/photo-1497366412874-3415097a27e7?w=1200",
+        "image_path": "demo/render-b.jpg",
+        "type": "opcion B",
+        "status": "pendiente",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "9b706f57-bd1d-4070-8ba7-b282a893278f",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Referencia sala",
+        "description": "Referencia de estilo para sala de juntas",
+        "image_url": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1200",
+        "image_path": "demo/referencia-sala.jpg",
+        "type": "referencia",
+        "status": "aprobada",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      }
+    ],
+    "decisions": [
+      {
+        "id": "779d54be-bc39-4920-81d6-70abc5dac3b0",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Aprobar layout general",
+        "description": "Validar distribucion final del layout de oficinas.",
+        "status": "pendiente",
+        "priority": "alta",
+        "due_date": "2026-05-09",
+        "approved_at": null,
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "356e16b0-b893-48b9-a3ed-2518efe233ea",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Elegir color de paredes",
+        "description": "Seleccionar entre paleta neutra o calida.",
+        "status": "pendiente",
+        "priority": "media",
+        "due_date": "2026-05-11",
+        "approved_at": null,
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "8a4d1bee-4af4-4c19-9d44-18275a68049c",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Confirmar mobiliario recepcion",
+        "description": "Definir opcion final de mostrador y butacas.",
+        "status": "aprobada",
+        "priority": "media",
+        "due_date": "2026-05-07",
+        "approved_at": null,
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      }
+    ],
+    "documents": [
+      {
+        "id": "c1a00b15-2699-43df-9b0f-55933ea1d6b0",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Plano distribucion nivel 1",
+        "category": "Planos",
+        "file_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "file_path": "demo/plano-n1.pdf",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "cead0eab-3dd8-432f-aa45-1bff91e0d6b6",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Presupuesto preliminar",
+        "category": "Presupuestos",
+        "file_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "file_path": "demo/presupuesto-preliminar.pdf",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "f65dd186-50a8-4aff-8906-3eff0fbdf5ed",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Borrador contrato",
+        "category": "Contratos",
+        "file_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "file_path": "demo/contrato-borrador.pdf",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      }
+    ],
+    "construction_updates": [
+      {
+        "id": "d66f86e6-aff8-42f3-86af-47da0a899674",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Inicio de desmontaje",
+        "description": "Se retiro mobiliario antiguo del area de recepcion.",
+        "image_url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200",
+        "image_path": "demo/update-1.jpg",
+        "update_date": "2026-04-29",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "9608e907-58a3-461d-b9e4-ff16e7afd20d",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Avance instalaciones",
+        "description": "Instalacion electrica y puntos de red completados al 80%.",
+        "image_url": "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200",
+        "image_path": "demo/update-2.jpg",
+        "update_date": "2026-05-03",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      },
+      {
+        "id": "866172d9-0b06-4dc1-9e97-b0b28c247c15",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "title": "Preparacion acabados",
+        "description": "Listo el espacio para pintura y detalles finales.",
+        "image_url": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1200",
+        "image_path": "demo/update-3.jpg",
+        "update_date": "2026-05-05",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      }
+    ],
+    "comments": [
+      {
+        "id": "4e2f35d3-6e5d-4fd3-8893-0fd6de0ca535",
+        "project_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "user_id": "b7f8e154-1635-4609-8847-3e771e2a12a2",
+        "target_type": "project",
+        "target_id": "13673fb1-117c-46ee-9611-4f01ec558b00",
+        "text": "Se ve claro el avance. Quedo pendiente aprobar la opcion de recepcion.",
+        "created_at": "2026-05-06T02:51:27.26465+00:00"
+      }
+    ],
+    "storage_manifest": {
+      "project_gallery_paths": [
+        "demo/render-a.jpg",
+        "demo/render-b.jpg",
+        "demo/referencia-sala.jpg"
+      ],
+      "project_document_paths": [
+        "demo/plano-n1.pdf",
+        "demo/presupuesto-preliminar.pdf",
+        "demo/contrato-borrador.pdf"
+      ],
+      "project_update_paths": [
+        "demo/update-1.jpg",
+        "demo/update-2.jpg",
+        "demo/update-3.jpg"
+      ]
+    }
+  }
+}

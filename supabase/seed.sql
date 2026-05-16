@@ -1,0 +1,3 @@
+﻿-- Seed minimo de referencia. Crear usuarios en Supabase Auth y luego completar sus IDs.
+-- update profiles set role='admin' where email='admin@portaldesign.com';
+-- update profiles set role='cliente' where email='cliente@portaldesign.com';
