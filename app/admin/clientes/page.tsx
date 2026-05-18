@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -45,7 +45,7 @@ export default function AdminClientsPage() {
     setError("");
     setMessage("");
 
-    const res = await fetch("/api/admin/create-client", {
+    const res = await fetch("/api/admin/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newClient),
@@ -168,7 +168,7 @@ export default function AdminClientsPage() {
             <button className="btn-primary" disabled={creating}>
               {creating ? "Creando..." : "Crear cliente"}
             </button>
-            {message ? <p style={{ margin: 0, color: "#7fd0ac" }}>{message}</p> : null}
+            {message ? <p style={{ margin: 0, color: "var(--info)" }}>{message}</p> : null}
             {error ? <p style={{ margin: 0, color: "#ff8f8f" }}>{error}</p> : null}
           </div>
         </form>
@@ -255,3 +255,4 @@ export default function AdminClientsPage() {
     </main>
   );
 }
+

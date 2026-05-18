@@ -1,96 +1,97 @@
 ﻿import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { normalizeProjectStatus } from "@/lib/project-status";
+import { ensureAdmin } from "@/lib/auth";
 
-async function ensureAdmin() {
-  const supabase = await createServerSupabase();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return { ok: false, status: 401, error: "No autenticado" } as const;
+type Params = { params: Promise<{ id: string }> };
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", authData.user.id).single();
-  if (!profile || profile.role !== "admin") return { ok: false, status: 403, error: "Solo admin" } as const;
+type UpdateProjectBody = {
+  name?: string;
+  description?: string | null;
+  client_id?: string;
+  status?: "activo" | "pausado" | "terminado";
+  current_phase_id?: string | null;
+};
 
-  return { ok: true } as const;
-}
-
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_: Request, { params }: Params) {
   const guard = await ensureAdmin();
   if (!guard.ok) return NextResponse.json({ error: guard.error }, { status: guard.status });
+
   const { id } = await params;
-
   const admin = createAdminSupabase();
-  const [projectRes, galleryRes, decisionsRes, documentsRes, updatesRes, phaseItemsRes] = await Promise.all([
-    admin.from("projects").select("*").eq("id", id).single(),
-    admin.from("gallery_items").select("*").eq("project_id", id).order("created_at", { ascending: false }),
-    admin.from("decisions").select("*").eq("project_id", id).order("created_at", { ascending: false }),
-    admin.from("documents").select("*").eq("project_id", id).order("created_at", { ascending: false }),
-    admin.from("construction_updates").select("*").eq("project_id", id).order("update_date", { ascending: false }),
-    admin.from("project_phase_items").select("*").eq("project_id", id).order("sort_order", { ascending: true }),
-  ]);
 
-  if (projectRes.error) {
-    return NextResponse.json({ error: projectRes.error.message }, { status: 400 });
+  const { data, error } = await admin
+    .from("projects")
+    .select(`
+      id,
+      client_id,
+      name,
+      description,
+      status,
+      current_phase_id,
+      created_at,
+      updated_at,
+      profiles:client_id (id, email, full_name, role),
+      phases:project_phases!project_phases_project_id_fkey (id, project_id, name, description, order_index, status, progress, created_at),
+      deliverables (id, project_id, phase_id, title, description, file_url, file_name, file_type, status, uploaded_at, approved_at, approved_by)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+
+  return NextResponse.json({ project: data });
+}
+
+export async function PATCH(req: Request, { params }: Params) {
+  const guard = await ensureAdmin();
+  if (!guard.ok) return NextResponse.json({ error: guard.error }, { status: guard.status });
+
+  const { id } = await params;
+  const body = (await req.json()) as UpdateProjectBody;
+
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+  if (typeof body.name === "string") payload.name = body.name.trim();
+  if (typeof body.description === "string") payload.description = body.description.trim() || null;
+  if (body.description === null) payload.description = null;
+  if (typeof body.client_id === "string") payload.client_id = body.client_id.trim();
+  if (typeof body.status === "string") payload.status = body.status;
+  if (body.current_phase_id === null || typeof body.current_phase_id === "string") {
+    payload.current_phase_id = body.current_phase_id;
   }
 
-  return NextResponse.json({
-    project: projectRes.data,
-    gallery: galleryRes.data ?? [],
-    decisions: decisionsRes.data ?? [],
-    documents: documentsRes.data ?? [],
-    updates: updatesRes.data ?? [],
-    phaseItems: phaseItemsRes.data ?? [],
-  });
-}
-
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await ensureAdmin();
-  if (!guard.ok) return NextResponse.json({ error: guard.error }, { status: guard.status });
-  const { id } = await params;
-
-  const body = await request.json();
   const admin = createAdminSupabase();
-
-  const payload = {
-    name: String(body.name ?? "").trim(),
-    client_id: String(body.client_id ?? "").trim(),
-    status: normalizeProjectStatus(body.status),
-    phase: String(body.phase ?? "Diagnostico").trim(),
-    progress: Number(body.progress ?? 0),
-    next_step: String(body.next_step ?? "").trim(),
-    summary: String(body.summary ?? "").trim(),
-    start_date: body.start_date || null,
-    estimated_delivery: body.estimated_delivery || null,
-  };
 
   const { data, error } = await admin
     .from("projects")
     .update(payload)
     .eq("id", id)
-    .select("*")
+    .select(`
+      id,
+      client_id,
+      name,
+      description,
+      status,
+      current_phase_id,
+      created_at,
+      updated_at
+    `)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
   return NextResponse.json({ project: data });
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_: Request, { params }: Params) {
   const guard = await ensureAdmin();
   if (!guard.ok) return NextResponse.json({ error: guard.error }, { status: guard.status });
-  const { id } = await params;
 
+  const { id } = await params;
   const admin = createAdminSupabase();
-  await admin.from("comments").delete().eq("project_id", id);
-  await admin.from("gallery_items").delete().eq("project_id", id);
-  await admin.from("decisions").delete().eq("project_id", id);
-  await admin.from("documents").delete().eq("project_id", id);
-  await admin.from("construction_updates").delete().eq("project_id", id);
-  await admin.from("project_phase_items").delete().eq("project_id", id);
 
   const { error } = await admin.from("projects").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   return NextResponse.json({ ok: true });
 }
-
-

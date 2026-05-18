@@ -1,54 +1,26 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PROJECT_STATUS_OPTIONS } from "@/lib/project-status";
 
-const phases = ["Diagnostico", "Diseno conceptual", "Anteproyecto", "Revision del cliente", "Diseno final", "Documentacion", "Aprobado"];
-
-const fieldLabelStyle: React.CSSProperties = {
-  display: "grid",
-  gap: 6,
-  fontSize: 14,
-  fontWeight: 600,
-  color: "#d7deea",
-};
-
-type ClientOption = { id: string; label: string; email?: string; role?: string };
+type ClientOption = { id: string; full_name: string | null; email: string | null };
 
 export default function NewProjectPage() {
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [status, setStatus] = useState<"activo" | "pausado" | "terminado">("activo");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    client_id: "",
-    status: "activo",
-    phase: phases[0],
-    progress: 0,
-    next_step: "",
-    summary: "",
-    start_date: "",
-    estimated_delivery: "",
-  });
 
   useEffect(() => {
     async function loadClients() {
-      const res = await fetch("/api/admin/list-clients", { cache: "no-store" });
-      const payload = await res.json();
-
-      if (!res.ok) {
-        setError(`No se pudieron cargar clientes: ${payload.error ?? "error"}`);
-        return;
-      }
-
-      const mapped: ClientOption[] = payload.clients ?? [];
-      setClients(mapped);
-      if (mapped.length === 1) {
-        setForm((prev) => ({ ...prev, client_id: mapped[0].id }));
-      }
+      const res = await fetch("/api/admin/clients", { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) return setError(json.error ?? "No se pudo cargar clientes");
+      setClients(json.clients ?? []);
     }
-
     loadClients();
   }, []);
 
@@ -56,114 +28,83 @@ export default function NewProjectPage() {
     e.preventDefault();
     setError("");
 
-    if (!form.client_id) {
-      setError("Debes seleccionar un cliente antes de guardar.");
+    if (!name.trim()) {
+      setError("Completa el nombre del proyecto.");
+      return;
+    }
+
+    if (!clientId) {
+      setError("Elige un cliente de la lista.");
       return;
     }
 
     setSaving(true);
-    const res = await fetch("/api/admin/create-project", {
+    const createRes = await fetch("/api/admin/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        name: name.trim(),
+        description: description.trim() || null,
+        client_id: clientId,
+        status,
+      }),
     });
-    const payload = await res.json();
 
-    if (!res.ok) {
+    const createJson = await createRes.json();
+    if (!createRes.ok) {
       setSaving(false);
-      setError(`No se pudo crear el proyecto: ${payload.error ?? "error"}`);
+      setError(createJson.error ?? "No se pudo crear proyecto");
       return;
     }
 
-    window.location.href = "/admin";
+    const projectId = createJson.project.id;
+
+    await fetch(`/api/admin/projects/${projectId}/copy-template`, { method: "POST" });
+
+    window.location.href = `/admin/proyectos/${projectId}`;
   }
 
   return (
     <main className="app-shell">
-      <section className="card" style={{ padding: 18, maxWidth: 860 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
-          <h1 style={{ margin: 0, color: "#f3f6fb" }}>Nuevo proyecto</h1>
+      <section className="card" style={{ maxWidth: 760, padding: 16, display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <h1 style={{ margin: 0 }}>Nuevo proyecto</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Link href="/admin" className="btn-secondary">Volver al dashboard</Link>
-            <Link href="/admin/clientes" className="btn-soft">Ir a clientes</Link>
+            <Link href="/admin/clientes" className="btn-soft">Crear cliente</Link>
+            <Link href="/admin" className="btn-secondary">Volver</Link>
           </div>
         </div>
 
-        {clients.length === 0 ? (
-          <section style={{ marginBottom: 12, padding: 12, border: "1px solid #fed7aa", borderRadius: 10, background: "#fff7ed" }}>
-            <p style={{ margin: "0 0 6px", fontWeight: 700, color: "#9a3412" }}>No hay clientes para seleccionar</p>
-            <p style={{ margin: 0, fontSize: 13, color: "#9a3412" }}>
-              Crea un cliente y luego vuelve a esta pantalla.
-            </p>
-            <Link href="/admin/clientes" className="btn-soft" style={{ marginTop: 10 }}>
-              Ir a Clientes
-            </Link>
-          </section>
-        ) : null}
+        <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
+          <input className="input" placeholder="Nombre del proyecto" value={name} onChange={(e) => setName(e.target.value)} />
+          <textarea className="textarea" placeholder="Descripcion (opcional)" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-        <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
-          <label style={fieldLabelStyle}>
-            Nombre del proyecto
-            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          </label>
+          <select className="input" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            <option value="">{clients.length ? "Selecciona un cliente" : "Cargando clientes..."}</option>
+            {clients.map((c) => {
+              const namePart = (c.full_name ?? "").trim();
+              const emailPart = (c.email ?? "").trim();
+              const label = namePart && emailPart ? `${namePart} — ${emailPart}` : namePart || emailPart || "(Sin nombre)";
+              return (
+                <option key={c.id} value={c.id}>
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+          <p style={{ margin: 0, fontSize: 12, color: "#9db0c6" }}>
+            Si el cliente no existe, créalo en “Crear cliente” y luego vuelve aquí.
+          </p>
 
-          <label style={fieldLabelStyle}>
-            Cliente asignado
-            <select className="select" value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} required>
-              <option value="">Seleccionar cliente</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
-            </select>
-          </label>
+          <select className="input" value={status} onChange={(e) => setStatus(e.target.value as "activo" | "pausado" | "terminado")}>
+            <option value="activo">activo</option>
+            <option value="pausado">pausado</option>
+            <option value="terminado">terminado</option>
+          </select>
 
-          <label style={fieldLabelStyle}>
-            Estado del proyecto
-            <select className="select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-              {PROJECT_STATUS_OPTIONS.map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Fase actual
-            <select className="select" value={form.phase} onChange={(e) => setForm({ ...form, phase: e.target.value })}>
-              {phases.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </select>
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Progreso manual (%)
-            <input className="input" type="number" min={0} max={100} value={form.progress} onChange={(e) => setForm({ ...form, progress: Number(e.target.value) })} />
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Proximo paso
-            <input className="input" value={form.next_step} onChange={(e) => setForm({ ...form, next_step: e.target.value })} />
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Resumen del proyecto
-            <textarea className="textarea" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Fecha de inicio
-            <input className="input" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-          </label>
-
-          <label style={fieldLabelStyle}>
-            Fecha estimada de entrega
-            <input className="input" type="date" value={form.estimated_delivery} onChange={(e) => setForm({ ...form, estimated_delivery: e.target.value })} />
-          </label>
-
-          {error ? <p style={{ margin: 0, color: "#dc2626", fontSize: 13 }}>{error}</p> : null}
-
-          <button className="btn-primary" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar proyecto"}
+          {error ? <p style={{ margin: 0, color: "#ff9c9c", fontSize: 13 }}>{error}</p> : null}
+          <button className="btn-primary" type="submit" disabled={saving}>
+            {saving ? "Guardando..." : "Crear proyecto"}
           </button>
         </form>
       </section>

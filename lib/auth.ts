@@ -1,6 +1,5 @@
-﻿import { redirect } from "next/navigation";
-import { createServerSupabase } from "./supabase/server";
-import { Profile, Role } from "./types";
+﻿import { createServerSupabase } from "./supabase/server";
+import type { Profile, Role } from "./types";
 
 export async function getCurrentProfile(): Promise<Profile | null> {
   const supabase = await createServerSupabase();
@@ -13,12 +12,33 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .eq("id", auth.user.id)
     .single();
 
-  return data as Profile | null;
+  return (data as Profile | null) ?? null;
 }
 
-export async function requireRole(role: Role) {
+export async function ensureAdmin() {
   const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
-  if (profile.role !== role) redirect(profile.role === "admin" ? "/admin" : "/cliente");
-  return profile;
+
+  if (!profile) {
+    return { ok: false as const, status: 401, error: "No autenticado" };
+  }
+
+  if (profile.role !== "admin") {
+    return { ok: false as const, status: 403, error: "Solo admin" };
+  }
+
+  return { ok: true as const, profile };
+}
+
+export async function ensureCliente() {
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    return { ok: false as const, status: 401, error: "No autenticado" };
+  }
+
+  if (profile.role !== "cliente") {
+    return { ok: false as const, status: 403, error: "Solo cliente" };
+  }
+
+  return { ok: true as const, profile };
 }

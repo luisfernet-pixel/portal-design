@@ -10,6 +10,7 @@
   --muted: #a0a7b5;
   --accent: #e5532d;
   --accent-soft: #f1784f;
+  --info: #2da8ff;
 }
 
 * { box-sizing: border-box; }
