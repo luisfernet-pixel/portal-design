@@ -124,8 +124,8 @@ export default async function AdminDashboardPage() {
                                 const labelRight = phaseProgress >= 100 ? "Fase Completada 100%" : `${phaseProgress}%`;
 
                                 return (
-                                  <details key={p.id}>
-                                    <summary style={{ cursor: "pointer", display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+                                  <div key={p.id} style={{ display: "grid", gap: 6 }}>
+                                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
                                       <p style={{ margin: 0, fontSize: isCurrent ? 14 : 12, fontWeight: isCurrent ? 800 : 600, color: isCurrent ? "var(--info)" : "#b8c3d6" }}>
                                         {p.order_index}. {p.name}
                                         {isCurrent ? <span style={{ color: "#ffffff", fontWeight: 700 }}> Fase Activa</span> : null}
@@ -133,12 +133,9 @@ export default async function AdminDashboardPage() {
                                       <p style={{ margin: 0, fontSize: 12, color: phaseProgress >= 100 ? "var(--info)" : "#8ea8c9", fontWeight: phaseProgress >= 100 ? 800 : 500 }}>
                                         {labelRight}
                                       </p>
-                                    </summary>
-
-                                    <div style={{ marginTop: 8 }}>
-                                      <ProgressBar value={phaseProgress} tone={isCurrent ? "info" : "muted"} />
                                     </div>
-                                  </details>
+                                    <ProgressBar value={phaseProgress} tone={isCurrent ? "info" : "muted"} />
+                                  </div>
                                 );
                               })}
                             </div>
